@@ -13,6 +13,8 @@ The data contains information such as the occurrence of diabetes, various diet-r
 
 We'll keep all variables, but be focusing on health/disease history variables, diet variables, a few behavioral variables, sex, and health insurance.
 
+The goal of this exploratory data analysis (EDA) is to identify any variables that may be indicative of a higher probability of a respondent being diabetic or pre-diabetic. We'll get an intuition of this through numerical summaries and visualizations, then test predictive ability of the input variables on `Diabetic_binary` through machine learning models.
+
 ## Ingesting data
 
 We read data in and select the variables of interest previously mentioned. The description of the data indicates that while all variables are numerically coded, only BMI, GenHlth and PhysHlth are truly numeric. The rest are categorical variables. 
@@ -78,6 +80,8 @@ diabetes2015 <- diabetes2015 |>
 
 We've cleaned up some categorical variables to have more legible levels, and left the others as-is as we consider the indicator values self-explanatory: 0 if false, 1 if true. If the variable is not binary, then it is considered truly quantitative.
 
+### Class imbalance check and NAs
+
 We now do some quick explorations of the data. We first check for any NAs. Also, since `Diabetes_binary` is our response variable of interest, we'll start EDA with that variable.
 
 ```{r response eda}
@@ -92,5 +96,88 @@ diabetes2015 |>
   
 ```
 
-`Diabetes_binary` is binary, as the name suggests, and the prevalence of diabetes in this data set is about 14%, so we exhibit some class imbalance we'll keep in mind for any modeling.
+`Diabetes_binary` is binary, as the name suggests, and the prevalence of diabetes in this data set is about 14%, so we exhibit some class imbalance we'll keep in mind for any modeling. There are no overtly missing values.
 
+### Univariate summaries
+
+Next, we'll look at univariate summaries.
+
+```{r univar summaries}
+
+summary(diabetes2015)
+
+```
+
+Nothing seems out of the ordinary based on the univariate summaries, **except** for `BMI`: there's a max value of 98, which seems really large.
+
+In metric units, $$BMI = mass\ (kg) / height^2\  (m)$$ so mass can be calculated as $$BMI \times height^2 = mass$$ 
+
+So if we assume a realistic height of 2 meters with a BMI of 98, one could be estimated to weigh `{r} 98 * 2^2` kilograms, or `{r 98 * 2^2 * 2.2}` pounds. It's pathologically heavy but not impossible. [Heavier weights have been recorded.](https://en.wikipedia.org/wiki/Jon_Brower_Minnoch)
+
+```{r bmi plot}
+
+library(ggplot2)
+
+diabetes2015 |>
+  ggplot(aes(x = BMI)) + 
+  geom_histogram() +
+  labs(title = "Histogram of BMIs")
+
+```
+
+We'll assume the values are recorded correctly and refrain from deleting records.
+
+### Bivariate summaries, numeric predictors
+
+We'll now check numeric distributions with respect to our binary variable of interest.
+
+```{r densities and diabetes}
+library(tidyr)
+
+diabetes2015 |>
+  select(Diabetes_binary, BMI, MentHlth, PhysHlth) |>
+  pivot_longer(BMI:PhysHlth, names_to = "Predictor") |>
+  ggplot(aes(x = value, y = Predictor, col = Diabetes_binary)) +
+  geom_boxplot() +
+  labs(title = "Distributions of numeric predictors by diabetes indication")
+```
+
+Just eyeballing the results, it looks like `BMI` may possibly reflect a meaningful difference in diabetes occurrence, as higher `BMI` values suggest higher diabetes rates.
+
+### Bivariate summaries, binary predictors
+
+Now we'll plot differences in binary predictors by diabetes occurrence.
+
+```{r binary predictors}
+
+diabetes2015 |>
+  select(-BMI, -MentHlth, -PhysHlth, -age_levels, -inc_levels, -edu_levels, -health_levels) |>
+  group_by(Diabetes_binary) |>
+  summarize(across(everything(), mean)) |>
+  pivot_longer(!Diabetes_binary, names_to = "Predictor") |>
+  ggplot(aes(x = value, y = Predictor, fill = Diabetes_binary)) +
+  geom_col(position = "dodge")
+```
+
+Looking at predictor rates for both levels of `Diabetes_binary`, we see that disease/health variables seem to show the largest within-variable difference. These will likely be useful predictors. But just about every predictor except the health insurance/health care cost ones seem to suggest slight differences.
+
+### Bivariate summaries, multi-level categorical predictors
+
+Lastly, we'll check out `Diabetes_binary` and counts for the four multi-level categorical predictors.
+
+```{r categorical predictors}
+
+diabetes2015 |>
+  select(Diabetes_binary, age_levels, edu_levels, inc_levels, health_levels) |>
+  pivot_longer(!Diabetes_binary, names_to = "Predictor") |>
+  count(Diabetes_binary, Predictor, value) |>
+  ggplot(aes(x = n, y = value, fill = Diabetes_binary)) + 
+  geom_col(position = "dodge") +
+  facet_wrap( ~ Predictor, scales = "free_y")
+```
+
+There appear to exist differences in `Diabetes_binary` for different age, income, health and education groups. Older age groups, lower health, education, and income groups all suggest higher diabetes rates.
+
+## Modeling
+
+**TODO**: [Click here for the Modeling page!](some url)
