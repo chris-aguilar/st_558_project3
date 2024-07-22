@@ -1,0 +1,213 @@
+---
+title: "Modeling"
+author: "Chris Aguilar"
+format: html
+editor: visual
+---
+
+## Introduction
+
+We'll be looking at the relationship between diabetes occurrence and several health predictors given in this [Diabetes Health Indicators Dataset](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset/). The data comes from the Behavioral Risk Factor Surveillance System, a telephone survey collected by the CDC. We'll be using the 2015 version of the data for exploration, analysis, and machine learning.
+
+The data contains information such as the occurrence of diabetes, various diet-related predictors (fruit/veggie consumption, alcohol), behavioral variables (exercise, smoker, doctor visits), demographic information (sex, education, income), and a few subjective variables where respondents are asked about their health.
+
+We'll keep all variables, but be focusing on health/disease history variables, diet variables, a few behavioral variables, sex, and health insurance.
+
+The goal of this **Modeling Exercise** is to identify any variables that may be indicative of a higher probability of a respondent being diabetic or pre-diabetic. We've gotten an intuition of this through numerical summaries and visualizations. We'll now test predictive relationships using statistical and machine learning models.
+
+## Ingesting data
+
+We read in and clean up the data as done during the **EDA** phase.
+
+```{r read prep data}
+library(readr)
+library(dplyr)
+library(stringr)
+
+diabetes2015 <- read_csv("data/diabetes_binary_health_indicators_BRFSS2015.csv")
+
+# helper function to extract level code and level translation
+getLevels <- function(x, value_name = "value") {
+  # grabbing digits at beginning of string
+  index <- str_extract(x, "^\\d{1,2}") |> as.integer()
+  # Grabbing everything that starts with a letter onwards
+  value <- str_extract(x, "[A-Za-z](.+)")
+  # putting index and value into data frame for joining later
+  res <- data.frame(index = index)
+  res[[value_name]] <- value
+  res
+}
+
+# factor levels to use for some vars, obtained from discussion section using readClipboard()
+ages <- c("1 Age 18 to 24", "2 Age 25 to 29", "3 Age 30 to 34", "4 Age 35 to 39", 
+"5 Age 40 to 44", "6 Age 45 to 49", "7 Age 50 to 54", "8 Age 55 to 59", 
+"9 Age 60 to 64", "10 Age 65 to 69", "11 Age 70 to 74", "12 Age 75 to 79", 
+"13 Age 80 or older")
+
+edu <- c("1 Never attended school or only kindergarten", "2 Grades 1 through 8 (Elementary)", 
+"3 Grades 9 through 11 (Some high school)", "4 Grade 12 or GED (High school graduate)", 
+"5 College 1 year to 3 years (Some college or technical school)", 
+"6 College 4 years or more (College graduate)")
+
+income <- c("1 Less than $10,000", "2 Less than $15,000 ($10,000 to less than $15,000)", 
+"3 Less than $20,000 ($15,000 to less than $20,000)", "4 Less than $25,000 ($20,000 to less than $25,000)", 
+"5 Less than $35,000 ($25,000 to less than $35,000)", "6 Less than $50,000 ($35,000 to less than $50,000)", 
+"7 Less than $75,000 ($50,000 to less than $75,000)", "8 More than $75,000"
+)
+
+gen_health <- c("1 excellent", "2 very good", "3 good", "4 fair", "5 poor")
+
+# reference tables
+age_table <- getLevels(ages, "age_levels")
+edu_table <- getLevels(edu, "edu_levels")
+income_table <- getLevels(income, "inc_levels")
+gen_health_table <- getLevels(gen_health, "health_levels")
+
+# Grabbing diabetes data, joining translated categorical variables, and dropping redundant default variables
+diabetes2015 <- diabetes2015 |>
+  left_join(age_table, by = join_by(Age == index)) |>
+  left_join(edu_table, by = join_by(Education == index)) |>
+  left_join(income_table, by = join_by(Income == index)) |>
+  left_join(gen_health_table, by = join_by(GenHlth == index)) |>
+  select(-Age, -Education, -Income, -GenHlth) |> # dropping baseline variables
+  mutate(Diabetes_binary = ifelse(Diabetes_binary == 1, "yes", "no")) |>
+  mutate(across(where(is.character), factor)) # making the relevant variables factors
+
+```
+
+## Train/Test split
+
+Next, we'll split the data into a training and test set. We'll be doing a 70/30 split for the training/test set, and we'll do 5-fold cross validation.
+
+We'll be using `logLoss` as our metric for model evaluation, which should be minimized.
+
+### Why log loss?
+
+From the [yardstick package's documentation](https://yardstick.tidymodels.org/reference/mn_log_loss.html#details) for `mn_log_loss`:
+
+> Log loss is a measure of the performance of a classification model. A perfect model has a log loss of 0.
+Compared with accuracy(), log loss takes into account the uncertainty in the prediction and gives a more detailed view into the actual performance. For example, given two input probabilities of .6 and .9 where both are classified as predicting a positive value, say, "Yes", the accuracy metric would interpret them as having the same value. If the true output is "Yes", log loss penalizes .6 because it is "less sure" of it's result compared to the probability of .9.
+
+So essentially, when we have a binary response variable, we may prefer log loss to something like accuracy because it will penalize "unsure" probability predictions. This gives us more insight into how well a model is predicting instead of just giving us a "positive/"negative" class. This becomes especially important when our classes are imbalanced in a binary outcome response, as predicting the minority class gets more difficult.
+
+```{r train test split}
+library(caret)
+
+set.seed(123)
+train_split <- createDataPartition(diabetes2015$Diabetes_binary, p = 0.7, list = FALSE)
+
+train_set <- diabetes2015[train_split, ]
+test_set <- diabetes2015[-train_split, ]
+
+# 5 fold cross validation and log loss for train control
+control <- trainControl(method="cv", number=5, classProbs=TRUE, summaryFunction=mnLogLoss)
+```
+
+We'll now begin considering different model classes and fitting models to determine which one will perform best on the test set.
+
+## Model fitting
+
+We'll be considering three different classes of models:
+
+  - Logistic regression
+  - Classification trees
+  - Random forests
+
+We begin with logistic regression.
+
+### Logistic regression
+
+Logistic regression is a generalized linear model that relates a binary response to a linear function of predictors. This relation happens through a link function. For logistic regression, we'll typically be using the logit function, though other options exist.
+
+We would apply a logistic regression to a binary response because, while we **could** use ordinary least squares on a 0/1 outcome, the nature of that model would mean we may predict probabilities less than 0 or greater than 1, which wouldn't be appropriate -- linear regression assumes the outcome's support is all real numbers. Logistic regression restricts the probability predictions to be between 0 and 1. However, we must be careful because we no longer interpret logistic regression coefficients the way we would for linear regression. By default, we interpret them in terms of log-odds.
+
+Let's fit some logistic regression models. We'll have three sets of variables: **objective health data** as inputs (stuff that a doctor would provide), **subjective data** as inputs (stuff from questionnaires plus demographics), and **all data**.
+
+We'll visually compare performance across resamples.
+
+```{r logreg}
+
+# More "objective" health variables
+logreg1 <- train(Diabetes_binary ~ HighBP + HighChol + BMI + Stroke + HeartDiseaseorAttack + DiffWalk,
+                 data = train_set,
+                 method = "glm",
+                 family = "binomial",
+                 trControl = control,
+                 metric = "logLoss")
+
+# Subjective vars and demographic data
+logreg2 <- train(Diabetes_binary ~ 
+                   CholCheck + 
+                   Smoker + 
+                   PhysActivity + 
+                   Fruits + 
+                   Veggies + 
+                   HvyAlcoholConsump + 
+                   AnyHealthcare +
+                   NoDocbcCost +
+                   MentHlth +
+                   PhysHlth + 
+                   Sex +
+                   age_levels +
+                   edu_levels +
+                   inc_levels + 
+                   health_levels,
+                 data = train_set,
+                 method = "glm",
+                 family = "binomial",
+                 trControl = control,
+                 metric = "logLoss")
+
+# all variables
+logreg3 <- train(Diabetes_binary ~ 
+                   .,
+                 data = train_set,
+                 method = "glm",
+                 family = "binomial",
+                 trControl = control,
+                 metric = "logLoss")
+
+# log reg resamples
+logreg_resamples <- resamples(list(health_data = logreg1, questionnaire_data = logreg2, all_data = logreg3))
+
+bwplot(logreg_resamples)
+```
+After training all three of our candidate models, the model using all the predictors minimizes log loss, so we'll choose that one going forward.
+
+For curiousity's sake, let's look at a summary of that best logistic regression model.
+```{r best logreg summary}
+summary(logreg3)
+```
+
+Pretty interesting.
+
+Now we'll look at classification trees.
+
+### Classification trees
+
+Classification trees are non-parametric models that make predictions by partitioning the predictor space such that some loss function of interest is minimized. Predictions for the partitions, in the classification case, are simply the most prevalent class (or the proportion of that most prevalent class, if we're predicting probabilities) within that partition. Classification trees can easily overfit data, so we adjust their performance by tuning a complexity parameter `cp` for these models.
+
+We might use classification trees when we are unsure of what variables have useful relationships with the response or when we are unsure of the exact nature of the relationship, when we are unsure of any interaction effects, and when we are interested in feature selection while still maintaining a degree of interpretability. This is only applicable with smaller predictor sets however. Also, classification tree results can be highly variable with small changes in the data, so this is another consideration we must take.
+
+Let's fit some trees! We'll plot the `logLoss` value per value of `cp`, the complexity parameter to get an idea of which tree does best. We won't be visualizing a tree diagram though, as with all the variables we have, it'll be pretty difficult to interpret.
+
+```{r cart}
+
+tree_grid <- data.frame(cp = seq(from = 0.0001, to = 0.0015, by = 0.0001))
+
+set.seed(456)
+rpart_fit <- train(Diabetes_binary ~ ., data = train_set,
+                  trControl = control, 
+                  method = "rpart", 
+                  metric = "logLoss",
+                  tuneGrid = tree_grid)
+
+plot(rpart_fit)
+```
+
+We see our estimate of best `rpart` model is at a `cp` value of `{r} rpart_fit$bestTune`.
+
+Finally, we'll look at random forest models, which are ensembles of individual tree models.
+
+### Random forest
+
