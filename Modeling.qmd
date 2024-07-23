@@ -127,6 +127,7 @@ We'll visually compare performance across resamples.
 
 ```{r logreg}
 
+set.seed(123)
 # More "objective" health variables
 logreg1 <- train(Diabetes_binary ~ HighBP + HighChol + BMI + Stroke + HeartDiseaseorAttack + DiffWalk,
                  data = train_set,
@@ -211,3 +212,77 @@ Finally, we'll look at random forest models, which are ensembles of individual t
 
 ### Random forest
 
+**PLEASE NOTE**: Given the size of the data, instead of `method = 'rf'`, we'll be using `method = 'ranger'` to use the `ranger` package's [implementation of the random forest algorithm](https://www.jstatsoft.org/article/view/v077i01). It's much faster, and while going through this assignment, it took about 20 minutes to finish 3-fold CV over 500 trees, 3 values of mtry, and 2 values of splitrule. A prior approach on `rf` took about 2 hours for 5 values of mtry and 5-fold CV on 300 trees.
+
+Random forest models are ensemble models. This means they use many submodels to make "averaged" predictions. The benefit here is that the prediction accuracy is typically improved by virtue of reduced variance of individual tree predictions, since predictions are aggregated from several trees.
+
+Random forests take a bootstrapped sample, the same size as the actual sample, and train a tree on this resample. Then this tree calls predictions for some given x-values. This process is repeated a set number of times, typically 100 or 1000. Finally, those 100 or 1000 sets of predictions are averaged. This is the **bagged tree** approach.
+
+The extra step random forests add is random sampling of the predictors to decorrelate the trees. This makes it so that correlated predictors don't dominate the predictor space.
+
+We'll train some random forest models and select the best one based on the best `mtry` parameter. The `ranger` implementation of random forest, by default, uses 500 trees. We'll use all predictors as initial inputs. *Due to the length of time it takes to train a random forest model*, we'll be reducing the number of cross-validation folds to 3, and let the `caret`'s `train` function randomly select hyperparameter values to tune over.
+
+
+```{r rf}
+
+# 3 fold cross validation and log loss for train control
+rf_control <- trainControl(method="cv", number=3, classProbs=TRUE, summaryFunction=mnLogLoss)
+
+set.seed(456)
+rf_fit <- train(Diabetes_binary ~ ., data = train_set,
+                  trControl = rf_control, 
+                  method = "ranger", 
+                  metric = "logLoss",
+                  tuneLength = 3
+                  # tuneGrid = tree_grid
+                )
+
+plot(rf_fit)
+```
+
+We see from the plot of hyperparameter value relationships on CV logLoss that fewer predictors and a gini split-rule yield the best RF model from the `ranger` package.
+
+Time to evaluate performance on the test set!
+
+### Test set evaluation
+
+We'll create test set predictions for the full-variable logistic regression model, for the best classification tree model, and for the best random forest model. Then we'll determine which model performs best overall, but note that we'll select the simplest model if there isn't much difference in performance between the best and second best model.
+
+We'll create a helper function `getLogLoss` to evaluate model performance on the test set, then stick the results in a data frame and see which model gets the lowest test set log loss.
+
+```{r test set evals}
+
+getLogLoss <- function(model_fit, newdata) {
+  
+  # predict classes
+  class_preds <- predict(model_fit, newdata = newdata)
+  classes <- levels(class_preds)
+  
+  # predict probabilities
+  prob_preds <- predict(model_fit, newdata = newdata, type = "prob")
+  
+  # put data in data frame with required columns for mnLogLoss function
+  preds_df <- data.frame(obs = newdata$Diabetes_binary, pred = class_preds) |> bind_cols(prob_preds)
+  
+  # get log loss
+  mnLogLoss(preds_df, lev = classes)
+}
+
+model_performance <- data.frame(
+  models = c("logistic regression", "class. tree", "random forest"),
+  test_log_loss = c(getLogLoss(logreg3, test_set), getLogLoss(rpart_fit, test_set), getLogLoss(rf_fit, test_set))
+  )
+
+# Filtering for lowest log loss
+model_performance |> filter(test_log_loss == min(test_log_loss))
+```
+
+We see the best model, evaluated on the test set, is `{r} model_performance |> filter(test_log_loss == min(test_log_loss)) |> pull(models)`!
+
+## Modeling conclusion
+
+We trained 3 logistic regression models with different predictor sets, a few classification trees, and a few random forest models using cross validation. Then we evaluated their performance on the test set. We found `{r} model_performance |> filter(test_log_loss == min(test_log_loss)) |> pull(models)` performs best.
+
+Going forward, we'll be using that model, trained on all the data, for our API!
+
+Thank you for reading!
