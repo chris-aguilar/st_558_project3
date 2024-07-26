@@ -180,4 +180,6 @@ There appear to exist differences in `Diabetes_binary` for different age, income
 
 ## Modeling
 
-**TODO**: [Click here for the Modeling page!](some url)
+Next, we'll train a few models to predict pre-diabetes or diabetes using some of the variables we just explored.
+
+[Click here for the Modeling page!](docs/Modeling.html)

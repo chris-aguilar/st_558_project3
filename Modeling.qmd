@@ -85,8 +85,7 @@ We'll be using `logLoss` as our metric for model evaluation, which should be min
 
 From the [yardstick package's documentation](https://yardstick.tidymodels.org/reference/mn_log_loss.html#details) for `mn_log_loss`:
 
-> Log loss is a measure of the performance of a classification model. A perfect model has a log loss of 0.
-Compared with accuracy(), log loss takes into account the uncertainty in the prediction and gives a more detailed view into the actual performance. For example, given two input probabilities of .6 and .9 where both are classified as predicting a positive value, say, "Yes", the accuracy metric would interpret them as having the same value. If the true output is "Yes", log loss penalizes .6 because it is "less sure" of it's result compared to the probability of .9.
+> Log loss is a measure of the performance of a classification model. A perfect model has a log loss of 0. Compared with accuracy(), log loss takes into account the uncertainty in the prediction and gives a more detailed view into the actual performance. For example, given two input probabilities of .6 and .9 where both are classified as predicting a positive value, say, "Yes", the accuracy metric would interpret them as having the same value. If the true output is "Yes", log loss penalizes .6 because it is "less sure" of it's result compared to the probability of .9.
 
 So essentially, when we have a binary response variable, we may prefer log loss to something like accuracy because it will penalize "unsure" probability predictions. This gives us more insight into how well a model is predicting instead of just giving us a "positive/"negative" class. This becomes especially important when our classes are imbalanced in a binary outcome response, as predicting the minority class gets more difficult.
 
@@ -109,9 +108,9 @@ We'll now begin considering different model classes and fitting models to determ
 
 We'll be considering three different classes of models:
 
-  - Logistic regression
-  - Classification trees
-  - Random forests
+-   Logistic regression
+-   Classification trees
+-   Random forests
 
 We begin with logistic regression.
 
@@ -173,10 +172,15 @@ logreg_resamples <- resamples(list(health_data = logreg1, questionnaire_data = l
 
 bwplot(logreg_resamples)
 ```
-After training all three of our candidate models, the model using all the predictors minimizes log loss, so we'll choose that one going forward.
 
-For curiousity's sake, let's look at a summary of that best logistic regression model.
+After training all three of our candidate models, the model using all the predictors minimizes log loss. However, the difference between the best logistic regression model and the simplest logistic regression model isn't too big... so we'll use the full model and the simplest model captured by `health_data` on the test set and see what the difference is.
+
+For curiousity's sake, let's look at a summary of that best logistic regression model, and the simplest model.
+
 ```{r best logreg summary}
+# simplest model
+summary(logreg1)
+# full model
 summary(logreg3)
 ```
 
@@ -222,7 +226,6 @@ The extra step random forests add is random sampling of the predictors to decorr
 
 We'll train some random forest models and select the best one based on the best `mtry` parameter. The `ranger` implementation of random forest, by default, uses 500 trees. We'll use all predictors as initial inputs. *Due to the length of time it takes to train a random forest model*, we'll be reducing the number of cross-validation folds to 3, and let the `caret`'s `train` function randomly select hyperparameter values to tune over.
 
-
 ```{r rf}
 
 # 3 fold cross validation and log loss for train control
@@ -246,7 +249,7 @@ Time to evaluate performance on the test set!
 
 ### Test set evaluation
 
-We'll create test set predictions for the full-variable logistic regression model, for the best classification tree model, and for the best random forest model. Then we'll determine which model performs best overall, but note that we'll select the simplest model if there isn't much difference in performance between the best and second best model.
+We'll create test set predictions for the full-variable logistic regression model, for the simplest logistic regression model, for the best classification tree model, and for the best random forest model. Then we'll determine which model performs best overall, but note that we'll select the simplest model if there isn't much difference in performance between the best and second best model.
 
 We'll create a helper function `getLogLoss` to evaluate model performance on the test set, then stick the results in a data frame and see which model gets the lowest test set log loss.
 
@@ -269,20 +272,26 @@ getLogLoss <- function(model_fit, newdata) {
 }
 
 model_performance <- data.frame(
-  models = c("logistic regression", "class. tree", "random forest"),
-  test_log_loss = c(getLogLoss(logreg3, test_set), getLogLoss(rpart_fit, test_set), getLogLoss(rf_fit, test_set))
+  models = c("full logistic regression", "simplest logistic regression", "class. tree", "random forest"),
+  test_log_loss = c(
+    getLogLoss(logreg3, test_set), 
+    getLogLoss(logreg1, test_set), 
+    getLogLoss(rpart_fit, test_set), 
+    getLogLoss(rf_fit, test_set))
   )
 
-# Filtering for lowest log loss
-model_performance |> filter(test_log_loss == min(test_log_loss))
+# Viewing model results by lowest log loss
+model_performance |> arrange(test_log_loss)
 ```
 
 We see the best model, evaluated on the test set, is `{r} model_performance |> filter(test_log_loss == min(test_log_loss)) |> pull(models)`!
+
+The differences between the models aren't huge, though, and we prefer simplicity, so going forward, we'll choose the simplest logistic regression model for our API. Please note that if we absolutely had to get the most accurate model, we'd likely devote more time to hyperparameter tuning on random forest, or we'd take the full logistic regression model.
 
 ## Modeling conclusion
 
 We trained 3 logistic regression models with different predictor sets, a few classification trees, and a few random forest models using cross validation. Then we evaluated their performance on the test set. We found `{r} model_performance |> filter(test_log_loss == min(test_log_loss)) |> pull(models)` performs best.
 
-Going forward, we'll be using that model, trained on all the data, for our API!
+But as we saw, the differences in test set performance aren't massive, and we prefer parsimony in our modeling, so we'll use the simplest logistic regression for our API.
 
 Thank you for reading!

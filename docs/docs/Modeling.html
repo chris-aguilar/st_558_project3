@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.553">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Chris Aguilar">
+
+<title>Modeling</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-search-results"></div>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Modeling</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Chris Aguilar </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>We’ll be looking at the relationship between diabetes occurrence and several health predictors given in this <a href="https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset/">Diabetes Health Indicators Dataset</a>. The data comes from the Behavioral Risk Factor Surveillance System, a telephone survey collected by the CDC. We’ll be using the 2015 version of the data for exploration, analysis, and machine learning.</p>
+<p>The data contains information such as the occurrence of diabetes, various diet-related predictors (fruit/veggie consumption, alcohol), behavioral variables (exercise, smoker, doctor visits), demographic information (sex, education, income), and a few subjective variables where respondents are asked about their health.</p>
+<p>We’ll keep all variables, but be focusing on health/disease history variables, diet variables, a few behavioral variables, sex, and health insurance.</p>
+<p>The goal of this <strong>Modeling Exercise</strong> is to identify any variables that may be indicative of a higher probability of a respondent being diabetic or pre-diabetic. We’ve gotten an intuition of this through numerical summaries and visualizations. We’ll now test predictive relationships using statistical and machine learning models.</p>
+</section>
+<section id="ingesting-data" class="level2">
+<h2 class="anchored" data-anchor-id="ingesting-data">Ingesting data</h2>
+<p>We read in and clean up the data as done during the <strong>EDA</strong> phase.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>diabetes2015 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/diabetes_binary_health_indicators_BRFSS2015.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 253680 Columns: 22</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># helper function to extract level code and level translation</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>getLevels <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">value_name =</span> <span class="st">"value"</span>) {</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># grabbing digits at beginning of string</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  index <span class="ot">&lt;-</span> <span class="fu">str_extract</span>(x, <span class="st">"^</span><span class="sc">\\</span><span class="st">d{1,2}"</span>) <span class="sc">|&gt;</span> <span class="fu">as.integer</span>()</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Grabbing everything that starts with a letter onwards</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  value <span class="ot">&lt;-</span> <span class="fu">str_extract</span>(x, <span class="st">"[A-Za-z](.+)"</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># putting index and value into data frame for joining later</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">index =</span> index)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  res[[value_name]] <span class="ot">&lt;-</span> value</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  res</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># factor levels to use for some vars, obtained from discussion section using readClipboard()</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>ages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"1 Age 18 to 24"</span>, <span class="st">"2 Age 25 to 29"</span>, <span class="st">"3 Age 30 to 34"</span>, <span class="st">"4 Age 35 to 39"</span>, </span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="st">"5 Age 40 to 44"</span>, <span class="st">"6 Age 45 to 49"</span>, <span class="st">"7 Age 50 to 54"</span>, <span class="st">"8 Age 55 to 59"</span>, </span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="st">"9 Age 60 to 64"</span>, <span class="st">"10 Age 65 to 69"</span>, <span class="st">"11 Age 70 to 74"</span>, <span class="st">"12 Age 75 to 79"</span>, </span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="st">"13 Age 80 or older"</span>)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>edu <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"1 Never attended school or only kindergarten"</span>, <span class="st">"2 Grades 1 through 8 (Elementary)"</span>, </span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="st">"3 Grades 9 through 11 (Some high school)"</span>, <span class="st">"4 Grade 12 or GED (High school graduate)"</span>, </span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="st">"5 College 1 year to 3 years (Some college or technical school)"</span>, </span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="st">"6 College 4 years or more (College graduate)"</span>)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>income <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"1 Less than $10,000"</span>, <span class="st">"2 Less than $15,000 ($10,000 to less than $15,000)"</span>, </span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="st">"3 Less than $20,000 ($15,000 to less than $20,000)"</span>, <span class="st">"4 Less than $25,000 ($20,000 to less than $25,000)"</span>, </span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="st">"5 Less than $35,000 ($25,000 to less than $35,000)"</span>, <span class="st">"6 Less than $50,000 ($35,000 to less than $50,000)"</span>, </span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="st">"7 Less than $75,000 ($50,000 to less than $75,000)"</span>, <span class="st">"8 More than $75,000"</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>gen_health <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"1 excellent"</span>, <span class="st">"2 very good"</span>, <span class="st">"3 good"</span>, <span class="st">"4 fair"</span>, <span class="st">"5 poor"</span>)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="co"># reference tables</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>age_table <span class="ot">&lt;-</span> <span class="fu">getLevels</span>(ages, <span class="st">"age_levels"</span>)</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>edu_table <span class="ot">&lt;-</span> <span class="fu">getLevels</span>(edu, <span class="st">"edu_levels"</span>)</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>income_table <span class="ot">&lt;-</span> <span class="fu">getLevels</span>(income, <span class="st">"inc_levels"</span>)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>gen_health_table <span class="ot">&lt;-</span> <span class="fu">getLevels</span>(gen_health, <span class="st">"health_levels"</span>)</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Grabbing diabetes data, joining translated categorical variables, and dropping redundant default variables</span></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>diabetes2015 <span class="ot">&lt;-</span> diabetes2015 <span class="sc">|&gt;</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(age_table, <span class="at">by =</span> <span class="fu">join_by</span>(Age <span class="sc">==</span> index)) <span class="sc">|&gt;</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(edu_table, <span class="at">by =</span> <span class="fu">join_by</span>(Education <span class="sc">==</span> index)) <span class="sc">|&gt;</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(income_table, <span class="at">by =</span> <span class="fu">join_by</span>(Income <span class="sc">==</span> index)) <span class="sc">|&gt;</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(gen_health_table, <span class="at">by =</span> <span class="fu">join_by</span>(GenHlth <span class="sc">==</span> index)) <span class="sc">|&gt;</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Age, <span class="sc">-</span>Education, <span class="sc">-</span>Income, <span class="sc">-</span>GenHlth) <span class="sc">|&gt;</span> <span class="co"># dropping baseline variables</span></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Diabetes_binary =</span> <span class="fu">ifelse</span>(Diabetes_binary <span class="sc">==</span> <span class="dv">1</span>, <span class="st">"yes"</span>, <span class="st">"no"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.character), factor)) <span class="co"># making the relevant variables factors</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="traintest-split" class="level2">
+<h2 class="anchored" data-anchor-id="traintest-split">Train/Test split</h2>
+<p>Next, we’ll split the data into a training and test set. We’ll be doing a 70/30 split for the training/test set, and we’ll do 5-fold cross validation.</p>
+<p>We’ll be using <code>logLoss</code> as our metric for model evaluation, which should be minimized.</p>
+<section id="why-log-loss" class="level3">
+<h3 class="anchored" data-anchor-id="why-log-loss">Why log loss?</h3>
+<p>From the <a href="https://yardstick.tidymodels.org/reference/mn_log_loss.html#details">yardstick package’s documentation</a> for <code>mn_log_loss</code>:</p>
+<blockquote class="blockquote">
+<p>Log loss is a measure of the performance of a classification model. A perfect model has a log loss of 0. Compared with accuracy(), log loss takes into account the uncertainty in the prediction and gives a more detailed view into the actual performance. For example, given two input probabilities of .6 and .9 where both are classified as predicting a positive value, say, “Yes”, the accuracy metric would interpret them as having the same value. If the true output is “Yes”, log loss penalizes .6 because it is “less sure” of it’s result compared to the probability of .9.</p>
+</blockquote>
+<p>So essentially, when we have a binary response variable, we may prefer log loss to something like accuracy because it will penalize “unsure” probability predictions. This gives us more insight into how well a model is predicting instead of just giving us a “positive/”negative” class. This becomes especially important when our classes are imbalanced in a binary outcome response, as predicting the minority class gets more difficult.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'caret' was built under R version 4.4.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: ggplot2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: lattice</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>train_split <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(diabetes2015<span class="sc">$</span>Diabetes_binary, <span class="at">p =</span> <span class="fl">0.7</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>train_set <span class="ot">&lt;-</span> diabetes2015[train_split, ]</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>test_set <span class="ot">&lt;-</span> diabetes2015[<span class="sc">-</span>train_split, ]</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 5 fold cross validation and log loss for train control</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>control <span class="ot">&lt;-</span> <span class="fu">trainControl</span>(<span class="at">method=</span><span class="st">"cv"</span>, <span class="at">number=</span><span class="dv">5</span>, <span class="at">classProbs=</span><span class="cn">TRUE</span>, <span class="at">summaryFunction=</span>mnLogLoss)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We’ll now begin considering different model classes and fitting models to determine which one will perform best on the test set.</p>
+</section>
+</section>
+<section id="model-fitting" class="level2">
+<h2 class="anchored" data-anchor-id="model-fitting">Model fitting</h2>
+<p>We’ll be considering three different classes of models:</p>
+<ul>
+<li>Logistic regression</li>
+<li>Classification trees</li>
+<li>Random forests</li>
+</ul>
+<p>We begin with logistic regression.</p>
+<section id="logistic-regression" class="level3">
+<h3 class="anchored" data-anchor-id="logistic-regression">Logistic regression</h3>
+<p>Logistic regression is a generalized linear model that relates a binary response to a linear function of predictors. This relation happens through a link function. For logistic regression, we’ll typically be using the logit function, though other options exist.</p>
+<p>We would apply a logistic regression to a binary response because, while we <strong>could</strong> use ordinary least squares on a 0/1 outcome, the nature of that model would mean we may predict probabilities less than 0 or greater than 1, which wouldn’t be appropriate – linear regression assumes the outcome’s support is all real numbers. Logistic regression restricts the probability predictions to be between 0 and 1. However, we must be careful because we no longer interpret logistic regression coefficients the way we would for linear regression. By default, we interpret them in terms of log-odds.</p>
+<p>Let’s fit some logistic regression models. We’ll have three sets of variables: <strong>objective health data</strong> as inputs (stuff that a doctor would provide), <strong>subjective data</strong> as inputs (stuff from questionnaires plus demographics), and <strong>all data</strong>.</p>
+<p>We’ll visually compare performance across resamples.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># More "objective" health variables</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>logreg1 <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> HighBP <span class="sc">+</span> HighChol <span class="sc">+</span> BMI <span class="sc">+</span> Stroke <span class="sc">+</span> HeartDiseaseorAttack <span class="sc">+</span> DiffWalk,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data =</span> train_set,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">method =</span> <span class="st">"glm"</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">trControl =</span> control,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">metric =</span> <span class="st">"logLoss"</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Subjective vars and demographic data</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>logreg2 <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> </span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>                   CholCheck <span class="sc">+</span> </span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>                   Smoker <span class="sc">+</span> </span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>                   PhysActivity <span class="sc">+</span> </span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>                   Fruits <span class="sc">+</span> </span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>                   Veggies <span class="sc">+</span> </span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>                   HvyAlcoholConsump <span class="sc">+</span> </span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>                   AnyHealthcare <span class="sc">+</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>                   NoDocbcCost <span class="sc">+</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>                   MentHlth <span class="sc">+</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>                   PhysHlth <span class="sc">+</span> </span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>                   Sex <span class="sc">+</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>                   age_levels <span class="sc">+</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>                   edu_levels <span class="sc">+</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>                   inc_levels <span class="sc">+</span> </span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>                   health_levels,</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data =</span> train_set,</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>                 <span class="at">method =</span> <span class="st">"glm"</span>,</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>                 <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>                 <span class="at">trControl =</span> control,</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>                 <span class="at">metric =</span> <span class="st">"logLoss"</span>)</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a><span class="co"># all variables</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>logreg3 <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> </span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>                   .,</span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data =</span> train_set,</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>                 <span class="at">method =</span> <span class="st">"glm"</span>,</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>                 <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>                 <span class="at">trControl =</span> control,</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>                 <span class="at">metric =</span> <span class="st">"logLoss"</span>)</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a><span class="co"># log reg resamples</span></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>logreg_resamples <span class="ot">&lt;-</span> <span class="fu">resamples</span>(<span class="fu">list</span>(<span class="at">health_data =</span> logreg1, <span class="at">questionnaire_data =</span> logreg2, <span class="at">all_data =</span> logreg3))</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a><span class="fu">bwplot</span>(logreg_resamples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Modeling_files/figure-html/logreg-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>After training all three of our candidate models, the model using all the predictors minimizes log loss. However, the difference between the best logistic regression model and the simplest logistic regression model isn’t too big… so we’ll use the full model and the simplest model captured by <code>health_data</code> on the test set and see what the difference is.</p>
+<p>For curiousity’s sake, let’s look at a summary of that best logistic regression model, and the simplest model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># simplest model</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(logreg1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+NULL
+
+Coefficients:
+                      Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)          -4.802712   0.033616 -142.87   &lt;2e-16 ***
+HighBP                1.067853   0.016874   63.28   &lt;2e-16 ***
+HighChol              0.705505   0.015789   44.68   &lt;2e-16 ***
+BMI                   0.058623   0.001014   57.80   &lt;2e-16 ***
+Stroke                0.337095   0.029829   11.30   &lt;2e-16 ***
+HeartDiseaseorAttack  0.580964   0.020494   28.35   &lt;2e-16 ***
+DiffWalk              0.684355   0.016986   40.29   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 143396  on 177576  degrees of freedom
+Residual deviance: 120795  on 177570  degrees of freedom
+AIC: 120809
+
+Number of Fisher Scoring iterations: 5</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># full model</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(logreg3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+NULL
+
+Coefficients:
+                                                              Estimate
+(Intercept)                                                  -8.217491
+HighBP                                                        0.693213
+HighChol                                                      0.525835
+CholCheck                                                     1.261563
+BMI                                                           0.059036
+Smoker                                                       -0.039468
+Stroke                                                        0.152456
+HeartDiseaseorAttack                                          0.241201
+PhysActivity                                                 -0.059418
+Fruits                                                       -0.008333
+Veggies                                                      -0.028423
+HvyAlcoholConsump                                            -0.761624
+AnyHealthcare                                                 0.087593
+NoDocbcCost                                                  -0.007637
+MentHlth                                                     -0.003463
+PhysHlth                                                     -0.003196
+DiffWalk                                                      0.151527
+Sex                                                           0.266505
+`age_levelsAge 25 to 29`                                      0.118075
+`age_levelsAge 30 to 34`                                      0.422357
+`age_levelsAge 35 to 39`                                      0.839950
+`age_levelsAge 40 to 44`                                      1.081653
+`age_levelsAge 45 to 49`                                      1.313777
+`age_levelsAge 50 to 54`                                      1.557893
+`age_levelsAge 55 to 59`                                      1.610480
+`age_levelsAge 60 to 64`                                      1.841716
+`age_levelsAge 65 to 69`                                      2.007648
+`age_levelsAge 70 to 74`                                      2.055305
+`age_levelsAge 75 to 79`                                      1.974004
+`age_levelsAge 80 or older`                                   1.797678
+`edu_levelsCollege 4 years or more (College graduate)`       -0.090230
+`edu_levelsGrade 12 or GED (High school graduate)`           -0.036568
+`edu_levelsGrades 1 through 8 (Elementary)`                   0.142040
+`edu_levelsGrades 9 through 11 (Some high school)`           -0.001561
+`edu_levelsNever attended school or only kindergarten`        0.137789
+`inc_levelsLess than $15,000 ($10,000 to less than $15,000)` -0.022839
+`inc_levelsLess than $20,000 ($15,000 to less than $20,000)` -0.044046
+`inc_levelsLess than $25,000 ($20,000 to less than $25,000)` -0.093504
+`inc_levelsLess than $35,000 ($25,000 to less than $35,000)` -0.147777
+`inc_levelsLess than $50,000 ($35,000 to less than $50,000)` -0.236534
+`inc_levelsLess than $75,000 ($50,000 to less than $75,000)` -0.261493
+`inc_levelsMore than $75,000`                                -0.395796
+health_levelsfair                                             1.821581
+health_levelsgood                                             1.394845
+health_levelspoor                                             1.970615
+`health_levelsvery good`                                      0.714836
+                                                             Std. Error z value
+(Intercept)                                                    0.174246 -47.160
+HighBP                                                         0.017618  39.346
+HighChol                                                       0.016246  32.366
+CholCheck                                                      0.082915  15.215
+BMI                                                            0.001100  53.645
+Smoker                                                         0.015878  -2.486
+Stroke                                                         0.030031   5.077
+HeartDiseaseorAttack                                           0.021263  11.344
+PhysActivity                                                   0.017247  -3.445
+Fruits                                                         0.016405  -0.508
+Veggies                                                        0.019053  -1.492
+HvyAlcoholConsump                                              0.045809 -16.626
+AnyHealthcare                                                  0.040517   2.162
+NoDocbcCost                                                    0.027657  -0.276
+MentHlth                                                       0.001022  -3.390
+PhysHlth                                                       0.000961  -3.326
+DiffWalk                                                       0.020289   7.468
+Sex                                                            0.016110  16.543
+`age_levelsAge 25 to 29`                                       0.173114   0.682
+`age_levelsAge 30 to 34`                                       0.154799   2.728
+`age_levelsAge 35 to 39`                                       0.146866   5.719
+`age_levelsAge 40 to 44`                                       0.143526   7.536
+`age_levelsAge 45 to 49`                                       0.141301   9.298
+`age_levelsAge 50 to 54`                                       0.139865  11.139
+`age_levelsAge 55 to 59`                                       0.139443  11.549
+`age_levelsAge 60 to 64`                                       0.139154  13.235
+`age_levelsAge 65 to 69`                                       0.139169  14.426
+`age_levelsAge 70 to 74`                                       0.139654  14.717
+`age_levelsAge 75 to 79`                                       0.140456  14.054
+`age_levelsAge 80 or older`                                    0.140670  12.779
+`edu_levelsCollege 4 years or more (College graduate)`         0.020413  -4.420
+`edu_levelsGrade 12 or GED (High school graduate)`             0.020070  -1.822
+`edu_levelsGrades 1 through 8 (Elementary)`                    0.049895   2.847
+`edu_levelsGrades 9 through 11 (Some high school)`             0.036107  -0.043
+`edu_levelsNever attended school or only kindergarten`         0.235537   0.585
+`inc_levelsLess than $15,000 ($10,000 to less than $15,000)`   0.042470  -0.538
+`inc_levelsLess than $20,000 ($15,000 to less than $20,000)`   0.040925  -1.076
+`inc_levelsLess than $25,000 ($20,000 to less than $25,000)`   0.040204  -2.326
+`inc_levelsLess than $35,000 ($25,000 to less than $35,000)`   0.039605  -3.731
+`inc_levelsLess than $50,000 ($35,000 to less than $50,000)`   0.039087  -6.051
+`inc_levelsLess than $75,000 ($50,000 to less than $75,000)`   0.039510  -6.618
+`inc_levelsMore than $75,000`                                  0.039193 -10.099
+health_levelsfair                                              0.042083  43.286
+health_levelsgood                                              0.038809  35.941
+health_levelspoor                                              0.050397  39.102
+`health_levelsvery good`                                       0.039650  18.029
+                                                             Pr(&gt;|z|)    
+(Intercept)                                                   &lt; 2e-16 ***
+HighBP                                                        &lt; 2e-16 ***
+HighChol                                                      &lt; 2e-16 ***
+CholCheck                                                     &lt; 2e-16 ***
+BMI                                                           &lt; 2e-16 ***
+Smoker                                                       0.012929 *  
+Stroke                                                       3.84e-07 ***
+HeartDiseaseorAttack                                          &lt; 2e-16 ***
+PhysActivity                                                 0.000571 ***
+Fruits                                                       0.611487    
+Veggies                                                      0.135754    
+HvyAlcoholConsump                                             &lt; 2e-16 ***
+AnyHealthcare                                                0.030628 *  
+NoDocbcCost                                                  0.782435    
+MentHlth                                                     0.000700 ***
+PhysHlth                                                     0.000883 ***
+DiffWalk                                                     8.12e-14 ***
+Sex                                                           &lt; 2e-16 ***
+`age_levelsAge 25 to 29`                                     0.495198    
+`age_levelsAge 30 to 34`                                     0.006364 ** 
+`age_levelsAge 35 to 39`                                     1.07e-08 ***
+`age_levelsAge 40 to 44`                                     4.84e-14 ***
+`age_levelsAge 45 to 49`                                      &lt; 2e-16 ***
+`age_levelsAge 50 to 54`                                      &lt; 2e-16 ***
+`age_levelsAge 55 to 59`                                      &lt; 2e-16 ***
+`age_levelsAge 60 to 64`                                      &lt; 2e-16 ***
+`age_levelsAge 65 to 69`                                      &lt; 2e-16 ***
+`age_levelsAge 70 to 74`                                      &lt; 2e-16 ***
+`age_levelsAge 75 to 79`                                      &lt; 2e-16 ***
+`age_levelsAge 80 or older`                                   &lt; 2e-16 ***
+`edu_levelsCollege 4 years or more (College graduate)`       9.86e-06 ***
+`edu_levelsGrade 12 or GED (High school graduate)`           0.068451 .  
+`edu_levelsGrades 1 through 8 (Elementary)`                  0.004417 ** 
+`edu_levelsGrades 9 through 11 (Some high school)`           0.965520    
+`edu_levelsNever attended school or only kindergarten`       0.558547    
+`inc_levelsLess than $15,000 ($10,000 to less than $15,000)` 0.590735    
+`inc_levelsLess than $20,000 ($15,000 to less than $20,000)` 0.281807    
+`inc_levelsLess than $25,000 ($20,000 to less than $25,000)` 0.020032 *  
+`inc_levelsLess than $35,000 ($25,000 to less than $35,000)` 0.000191 ***
+`inc_levelsLess than $50,000 ($35,000 to less than $50,000)` 1.44e-09 ***
+`inc_levelsLess than $75,000 ($50,000 to less than $75,000)` 3.63e-11 ***
+`inc_levelsMore than $75,000`                                 &lt; 2e-16 ***
+health_levelsfair                                             &lt; 2e-16 ***
+health_levelsgood                                             &lt; 2e-16 ***
+health_levelspoor                                             &lt; 2e-16 ***
+`health_levelsvery good`                                      &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 143396  on 177576  degrees of freedom
+Residual deviance: 112982  on 177531  degrees of freedom
+AIC: 113074
+
+Number of Fisher Scoring iterations: 6</code></pre>
+</div>
+</div>
+<p>Pretty interesting.</p>
+<p>Now we’ll look at classification trees.</p>
+</section>
+<section id="classification-trees" class="level3">
+<h3 class="anchored" data-anchor-id="classification-trees">Classification trees</h3>
+<p>Classification trees are non-parametric models that make predictions by partitioning the predictor space such that some loss function of interest is minimized. Predictions for the partitions, in the classification case, are simply the most prevalent class (or the proportion of that most prevalent class, if we’re predicting probabilities) within that partition. Classification trees can easily overfit data, so we adjust their performance by tuning a complexity parameter <code>cp</code> for these models.</p>
+<p>We might use classification trees when we are unsure of what variables have useful relationships with the response or when we are unsure of the exact nature of the relationship, when we are unsure of any interaction effects, and when we are interested in feature selection while still maintaining a degree of interpretability. This is only applicable with smaller predictor sets however. Also, classification tree results can be highly variable with small changes in the data, so this is another consideration we must take.</p>
+<p>Let’s fit some trees! We’ll plot the <code>logLoss</code> value per value of <code>cp</code>, the complexity parameter to get an idea of which tree does best. We won’t be visualizing a tree diagram though, as with all the variables we have, it’ll be pretty difficult to interpret.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>tree_grid <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">cp =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fl">0.0001</span>, <span class="at">to =</span> <span class="fl">0.0015</span>, <span class="at">by =</span> <span class="fl">0.0001</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">456</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>rpart_fit <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> ., <span class="at">data =</span> train_set,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">trControl =</span> control, </span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">"rpart"</span>, </span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">metric =</span> <span class="st">"logLoss"</span>,</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">tuneGrid =</span> tree_grid)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(rpart_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Modeling_files/figure-html/cart-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We see our estimate of best <code>rpart</code> model is at a <code>cp</code> value of 2^{-4}.</p>
+<p>Finally, we’ll look at random forest models, which are ensembles of individual tree models.</p>
+</section>
+<section id="random-forest" class="level3">
+<h3 class="anchored" data-anchor-id="random-forest">Random forest</h3>
+<p><strong>PLEASE NOTE</strong>: Given the size of the data, instead of <code>method = 'rf'</code>, we’ll be using <code>method = 'ranger'</code> to use the <code>ranger</code> package’s <a href="https://www.jstatsoft.org/article/view/v077i01">implementation of the random forest algorithm</a>. It’s much faster, and while going through this assignment, it took about 20 minutes to finish 3-fold CV over 500 trees, 3 values of mtry, and 2 values of splitrule. A prior approach on <code>rf</code> took about 2 hours for 5 values of mtry and 5-fold CV on 300 trees.</p>
+<p>Random forest models are ensemble models. This means they use many submodels to make “averaged” predictions. The benefit here is that the prediction accuracy is typically improved by virtue of reduced variance of individual tree predictions, since predictions are aggregated from several trees.</p>
+<p>Random forests take a bootstrapped sample, the same size as the actual sample, and train a tree on this resample. Then this tree calls predictions for some given x-values. This process is repeated a set number of times, typically 100 or 1000. Finally, those 100 or 1000 sets of predictions are averaged. This is the <strong>bagged tree</strong> approach.</p>
+<p>The extra step random forests add is random sampling of the predictors to decorrelate the trees. This makes it so that correlated predictors don’t dominate the predictor space.</p>
+<p>We’ll train some random forest models and select the best one based on the best <code>mtry</code> parameter. The <code>ranger</code> implementation of random forest, by default, uses 500 trees. We’ll use all predictors as initial inputs. <em>Due to the length of time it takes to train a random forest model</em>, we’ll be reducing the number of cross-validation folds to 3, and let the <code>caret</code>’s <code>train</code> function randomly select hyperparameter values to tune over.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3 fold cross validation and log loss for train control</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>rf_control <span class="ot">&lt;-</span> <span class="fu">trainControl</span>(<span class="at">method=</span><span class="st">"cv"</span>, <span class="at">number=</span><span class="dv">3</span>, <span class="at">classProbs=</span><span class="cn">TRUE</span>, <span class="at">summaryFunction=</span>mnLogLoss)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">456</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="ot">&lt;-</span> <span class="fu">train</span>(Diabetes_binary <span class="sc">~</span> ., <span class="at">data =</span> train_set,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">trControl =</span> rf_control, </span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">"ranger"</span>, </span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">metric =</span> <span class="st">"logLoss"</span>,</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">tuneLength =</span> <span class="dv">3</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>                  <span class="co"># tuneGrid = tree_grid</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>                )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Growing trees.. Progress: 42%. Estimated remaining time: 42 seconds.
+Growing trees.. Progress: 86%. Estimated remaining time: 10 seconds.
+Growing trees.. Progress: 22%. Estimated remaining time: 1 minute, 47 seconds.
+Growing trees.. Progress: 46%. Estimated remaining time: 1 minute, 11 seconds.
+Growing trees.. Progress: 71%. Estimated remaining time: 39 seconds.
+Growing trees.. Progress: 94%. Estimated remaining time: 8 seconds.
+Growing trees.. Progress: 36%. Estimated remaining time: 55 seconds.
+Growing trees.. Progress: 73%. Estimated remaining time: 23 seconds.
+Growing trees.. Progress: 19%. Estimated remaining time: 2 minutes, 17 seconds.
+Growing trees.. Progress: 39%. Estimated remaining time: 1 minute, 38 seconds.
+Growing trees.. Progress: 60%. Estimated remaining time: 1 minute, 4 seconds.
+Growing trees.. Progress: 80%. Estimated remaining time: 32 seconds.
+Growing trees.. Progress: 99%. Estimated remaining time: 1 seconds.
+Growing trees.. Progress: 42%. Estimated remaining time: 42 seconds.
+Growing trees.. Progress: 85%. Estimated remaining time: 10 seconds.
+Growing trees.. Progress: 22%. Estimated remaining time: 1 minute, 47 seconds.
+Growing trees.. Progress: 47%. Estimated remaining time: 1 minute, 11 seconds.
+Growing trees.. Progress: 71%. Estimated remaining time: 38 seconds.
+Growing trees.. Progress: 95%. Estimated remaining time: 7 seconds.
+Growing trees.. Progress: 36%. Estimated remaining time: 55 seconds.
+Growing trees.. Progress: 73%. Estimated remaining time: 23 seconds.
+Growing trees.. Progress: 19%. Estimated remaining time: 2 minutes, 10 seconds.
+Growing trees.. Progress: 38%. Estimated remaining time: 1 minute, 39 seconds.
+Growing trees.. Progress: 58%. Estimated remaining time: 1 minute, 6 seconds.
+Growing trees.. Progress: 78%. Estimated remaining time: 34 seconds.
+Growing trees.. Progress: 99%. Estimated remaining time: 2 seconds.
+Growing trees.. Progress: 42%. Estimated remaining time: 42 seconds.
+Growing trees.. Progress: 85%. Estimated remaining time: 10 seconds.
+Growing trees.. Progress: 22%. Estimated remaining time: 1 minute, 49 seconds.
+Growing trees.. Progress: 46%. Estimated remaining time: 1 minute, 12 seconds.
+Growing trees.. Progress: 70%. Estimated remaining time: 39 seconds.
+Growing trees.. Progress: 93%. Estimated remaining time: 9 seconds.
+Growing trees.. Progress: 35%. Estimated remaining time: 56 seconds.
+Growing trees.. Progress: 72%. Estimated remaining time: 24 seconds.
+Growing trees.. Progress: 19%. Estimated remaining time: 2 minutes, 10 seconds.
+Growing trees.. Progress: 38%. Estimated remaining time: 1 minute, 39 seconds.
+Growing trees.. Progress: 58%. Estimated remaining time: 1 minute, 7 seconds.
+Growing trees.. Progress: 78%. Estimated remaining time: 35 seconds.
+Growing trees.. Progress: 97%. Estimated remaining time: 4 seconds.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(rf_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Modeling_files/figure-html/rf-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We see from the plot of hyperparameter value relationships on CV logLoss that fewer predictors and a gini split-rule yield the best RF model from the <code>ranger</code> package.</p>
+<p>Time to evaluate performance on the test set!</p>
+</section>
+<section id="test-set-evaluation" class="level3">
+<h3 class="anchored" data-anchor-id="test-set-evaluation">Test set evaluation</h3>
+<p>We’ll create test set predictions for the full-variable logistic regression model, for the simplest logistic regression model, for the best classification tree model, and for the best random forest model. Then we’ll determine which model performs best overall, but note that we’ll select the simplest model if there isn’t much difference in performance between the best and second best model.</p>
+<p>We’ll create a helper function <code>getLogLoss</code> to evaluate model performance on the test set, then stick the results in a data frame and see which model gets the lowest test set log loss.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>getLogLoss <span class="ot">&lt;-</span> <span class="cf">function</span>(model_fit, newdata) {</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># predict classes</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  class_preds <span class="ot">&lt;-</span> <span class="fu">predict</span>(model_fit, <span class="at">newdata =</span> newdata)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  classes <span class="ot">&lt;-</span> <span class="fu">levels</span>(class_preds)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># predict probabilities</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  prob_preds <span class="ot">&lt;-</span> <span class="fu">predict</span>(model_fit, <span class="at">newdata =</span> newdata, <span class="at">type =</span> <span class="st">"prob"</span>)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># put data in data frame with required columns for mnLogLoss function</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  preds_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">obs =</span> newdata<span class="sc">$</span>Diabetes_binary, <span class="at">pred =</span> class_preds) <span class="sc">|&gt;</span> <span class="fu">bind_cols</span>(prob_preds)</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get log loss</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mnLogLoss</span>(preds_df, <span class="at">lev =</span> classes)</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>model_performance <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">"full logistic regression"</span>, <span class="st">"simplest logistic regression"</span>, <span class="st">"class. tree"</span>, <span class="st">"random forest"</span>),</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">test_log_loss =</span> <span class="fu">c</span>(</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">getLogLoss</span>(logreg3, test_set), </span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">getLogLoss</span>(logreg1, test_set), </span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">getLogLoss</span>(rpart_fit, test_set), </span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">getLogLoss</span>(rf_fit, test_set))</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Viewing model results by lowest log loss</span></span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>model_performance <span class="sc">|&gt;</span> <span class="fu">arrange</span>(test_log_loss)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                        models test_log_loss
+1     full logistic regression     0.3143462
+2                random forest     0.3276786
+3 simplest logistic regression     0.3369585
+4                  class. tree     0.3556284</code></pre>
+</div>
+</div>
+<p>We see the best model, evaluated on the test set, is full logistic regression!</p>
+<p>The differences between the models aren’t huge, though, and we prefer simplicity, so going forward, we’ll choose the simplest logistic regression model for our API. Please note that if we absolutely had to get the most accurate model, we’d likely devote more time to hyperparameter tuning on random forest, or we’d take the full logistic regression model.</p>
+</section>
+</section>
+<section id="modeling-conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="modeling-conclusion">Modeling conclusion</h2>
+<p>We trained 3 logistic regression models with different predictor sets, a few classification trees, and a few random forest models using cross validation. Then we evaluated their performance on the test set. We found full logistic regression performs best.</p>
+<p>But as we saw, the differences in test set performance aren’t massive, and we prefer parsimony in our modeling, so we’ll use the simplest logistic regression for our API.</p>
+<p>Thank you for reading!</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
