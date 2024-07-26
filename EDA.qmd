@@ -17,7 +17,7 @@ The goal of this exploratory data analysis (EDA) is to identify any variables th
 
 ## Ingesting data
 
-We read data in and select the variables of interest previously mentioned. The description of the data indicates that while all variables are numerically coded, only BMI, GenHlth and PhysHlth are truly numeric. The rest are categorical variables. 
+We read data in and select the variables of interest previously mentioned. The description of the data indicates that while all variables are numerically coded, only BMI, GenHlth and PhysHlth are truly numeric. The rest are categorical variables.
 
 However, all the categorical variables except Age, Income, Education, and General Health are binary. So we'll recategorize these four for levels that make more sense.
 
@@ -110,7 +110,7 @@ summary(diabetes2015)
 
 Nothing seems out of the ordinary based on the univariate summaries, **except** for `BMI`: there's a max value of 98, which seems really large.
 
-In metric units, $$BMI = mass\ (kg) / height^2\  (m)$$ so mass can be calculated as $$BMI \times height^2 = mass$$ 
+In metric units, $$BMI = mass\ (kg) / height^2\  (m)$$ so mass can be calculated as $$BMI \times height^2 = mass$$
 
 So if we assume a realistic height of 2 meters with a BMI of 98, one could be estimated to weigh `{r} 98 * 2^2` kilograms, or `{r 98 * 2^2 * 2.2}` pounds. It's pathologically heavy but not impossible. [Heavier weights have been recorded.](https://en.wikipedia.org/wiki/Jon_Brower_Minnoch)
 
@@ -182,4 +182,4 @@ There appear to exist differences in `Diabetes_binary` for different age, income
 
 Next, we'll train a few models to predict pre-diabetes or diabetes using some of the variables we just explored.
 
-[Click here for the Modeling page!](docs/Modeling.html)
+[Click here for the Modeling page!](Modeling.html)
